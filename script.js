@@ -137,7 +137,7 @@ function drawStars() {
 	}
 }
 
-function drawBrightStar(x,y,size) {
+function drawBrightStar(x, y, size) {
 	context.save();
 
 	context.fillStyle = "rgba(255,255,255,0.03)";	
@@ -230,7 +230,7 @@ function drawNebula()
 				var g = 64 + (196 * distanceAlpha);
 				var b = 0;
 
-				var finalAlpha = cloudCombo * (distanceAlpha * 3);
+				var finalAlpha = cloudCombo * (distanceAlpha);
 				setPixelRGB(x, y, r, g, b, finalAlpha);
 			}
 		}
@@ -280,9 +280,9 @@ function drawGasCloud()
 			var gRange = Math.abs(noise.fbm((x + offset1) / 600, ((y + offset1) / 600)));
 			var bRange = Math.abs(noise.fbm((x + offset1) / 750, ((y + offset1) / 750)));
 
-			var r = 64 + (196 * Math.abs(rRange - 1.0));
-			var g = 64 + (196 * Math.abs(gRange - 1.0));
-			var b = 64 + (196 * Math.abs(bRange - 1.0));
+			var r = 64 + (196 * Math.abs(rRange));
+			var g = 128 + (128 * Math.abs(gRange));
+			var b = 64 + (196 * Math.abs(bRange));
 
 			setPixelRGB(x, y, r, g, b, alpha);
 		}
