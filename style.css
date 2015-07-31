@@ -27,11 +27,6 @@ a:hover {
   -ms-interpolation-mode:nearest-neighbor;   /* IE8+           */
 }
 
-canvas {
-  width: 800px;
-  height: 600px;
-}
-
 .controls {
   margin: 10px;
 }
