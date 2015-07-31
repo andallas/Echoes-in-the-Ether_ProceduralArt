@@ -1,10 +1,10 @@
 seed = Math.round(Math.random() * 9007199254740991);
 
-if (getQueryParams(document.location.search).planet !== undefined) {
-	seed = getQueryParams(document.location.search).planet;
+if (getQueryParams(document.location.search).scene !== undefined) {
+	seed = getQueryParams(document.location.search).scene;
 }
 
-document.getElementById('permalink').href = '/proceduralart/?planet=' + seed;
+document.getElementById('permalink').href = '/Echoes-in-the-Ether_ProceduralArt/?scene=' + seed;
 
 noise.seed(seed % 10000);
 
