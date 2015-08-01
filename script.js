@@ -17,11 +17,11 @@ var height;
 var imageData;
 var pixels
 
-draw();
+var cameraX;
+var cameraY;
+var moved = true;
 
-function getHue(pivot) {
-	return (getBool(pivot + 1) ? scene.skyhue : scene.terrainhue) + 0.1 * (getInt(3, pivot) - 1);
-}
+run();
 
 function setupCanvas() {
 	canvas = document.getElementById("myCanvas");
@@ -30,6 +30,9 @@ function setupCanvas() {
 
 	width = canvas.width;
 	height = canvas.height;
+
+	cameraX = width / 2;
+	cameraY = height / 2;
 
 	context.fillRect(0, 0, width, height);
 }
@@ -78,53 +81,13 @@ function drawOnCanvas()
 	context.drawImage(compositor, 0, 0);
 }
 
-/*function drawStarships(x, y) {
-	var dx = getInt(3, getPivot('starshipdir')) - 1;
-	var dy = dx == 0 ? 1 : 0;
-	var dx2 = dy;
-	var dy2 = 1 - dy;
-	var size = getInt(8, getPivot('starshipsize')) + 5;
-	if (size % 2 == 0) size++;
-	var count = Math.floor(Math.pow(getFloat(getPivot('starshipcount')), 3) * 4) + 1;
-	var spread = getFloat(getPivot('starshipspread')) * 2;
-	
-	for (var i = 0; i < count; i++) {
-		for (var j = 0; j < size; j++) {
-			for (var k = 0; k < j; k++) {
-				setPixelRGB(x + dx2 * i * size * 1.5 + dx * i * spread * size + j * dx + (k - j / 2) * dx2,
-				            y + dy2 * i * size * 1.5 + dy * i * spread * size + j * dy + (k - j / 2) * dy2, 255, 255, 255, 1);
-				setPixelRGB(x - dx2 * i * size * 1.5 + dx * i * spread * size + j * dx + (k - j / 2) * dx2,
-				            y - dy2 * i * size * 1.5 + dy * i * spread * size + j * dy + (k - j / 2) * dy2, 255, 255, 255, 1);
-			}
-		}
-	}
-	
-	var exhausthue = scene.skyhue + 0.5;
-	if (exhausthue > 1)
-		exhausthue -= 1;
-	var exhaustlength = (3 + getInt(9, getPivot('exhaustlength'))) * size;
-	
-	for (var i = 0; i < count; i++) {
-		for (var j = 0; j < exhaustlength; j++) {
-			setPixel(x + dx2 * i * size * 1.5 + dx * i * spread * size + dx * (size + j) + dx2 * (size / 2 - 2),
-						y + dy2 * i * size * 1.5 + dy * i * spread * size + dy * (size + j) + dy2 * (size / 2 - 2), getRGB(exhausthue, 1, 1), Math.pow(1.0 - (j / exhaustlength), 2.0));
-			setPixel(x - dx2 * i * size * 1.5 + dx * i * spread * size + dx * (size + j) + dx2 * (size / 2 - 2),
-						y - dy2 * i * size * 1.5 + dy * i * spread * size + dy * (size + j) + dy2 * (size / 2 - 2), getRGB(exhausthue, 1, 1), Math.pow(1.0 - (j / exhaustlength), 2.0));
-			setPixel(x + dx2 * i * size * 1.5 + dx * i * spread * size + dx * (size + j) + dx2 * (-size / 2 + 2),
-						y + dy2 * i * size * 1.5 + dy * i * spread * size + dy * (size + j) + dy2 * (-size / 2 + 2), getRGB(exhausthue, 1, 1), Math.pow(1.0 - (j / exhaustlength), 2.0));
-			setPixel(x - dx2 * i * size * 1.5 + dx * i * spread * size + dx * (size + j) + dx2 * (-size / 2 + 2),
-						y - dy2 * i * size * 1.5 + dy * i * spread * size + dy * (size + j) + dy2 * (-size / 2 + 2), getRGB(exhausthue, 1, 1), Math.pow(1.0 - (j / exhaustlength), 2.0));
-		}
-	}	
-}*/
-
 function drawStars() {
 	context.save();
 	context.globalCompositeOperation = "screen";
 	
-	for (var i = 0; i < scene.starcount; i++) {
-		var x = getRGB(scene.skyhue, 0.2, 0.8);
-		setPixel(getInt(width, 10000 + i), getInt(height, 10000 + i + scene.starcount), getRGB(scene.skyhue, 0.2, 0.8));
+	for (var i = 0; i < scene.starCount; i++) {
+		var x = getRGB(scene.starHue, 0.2, 0.8);
+		setPixel(getInt(width, 10000 + i), getInt(height, 10000 + i + scene.starCount), getRGB(scene.starHue, 0.2, 0.8));
 	}
 	scene.brightstars = Math.max(0, getInt(20, getPivot('brightstars')) - 8);
 	scene.starsize = 5 + getInt(15, getPivot('starsize'));
@@ -186,8 +149,8 @@ function drawNebula()
 	var scale1 = 775;
 	var scale2 = 365;
 
-	for (var x = 0; x < width; x++) {
-		for (var y = 0; y < height; y++) {
+	for (var x = cameraX - centerX, bufferX = 0; x < cameraX + centerX; x++, bufferX++) {
+		for (var y = cameraY - centerY, bufferY = 0; y < cameraY + centerY; y++, bufferY++) {
 
 			var distance = Math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
 
@@ -231,7 +194,7 @@ function drawNebula()
 				var b = 0;
 
 				var finalAlpha = cloudCombo * (distanceAlpha);
-				setPixelRGB(x, y, r, g, b, finalAlpha);
+				setPixelRGB(bufferX, bufferY, r, g, b, finalAlpha);
 			}
 		}
 	}
@@ -292,20 +255,65 @@ function drawGasCloud()
 	context.restore();
 }
 
-function drawScene() {
-	scene.skyhue = getFloat(getPivot('skyhue'));
-	scene.skyhue2 = getFloat(getPivot('skyhue')) * 0.16;
-	scene.noiseseed = getFloat(getPivot('noiseSeed')) * 100;
-	scene.starcount = 100 + getInt(getPivot('starcount'),300);
+function draw() {
 	
-	drawStars();
-	drawGasCloud();
-	drawNebula();
+	if (moved)
+	{
+		scene.starHue = getFloat(getPivot('starHue'));
+		scene.starCount = 100 + getInt(getPivot('starCount'),300);
+		
+		drawStars();
+		drawGasCloud();
+		drawNebula();
+	}
+	moved = false;
+
+	requestAnimationFrame(draw);
 }
 
-function draw() {
+function update() {
+	//console.log("X: " + cameraX + " Y: " + cameraY);
+}
+
+function run() {
 	setupCanvas();
 	setupImageData();
 
-	drawScene();
+	document.addEventListener("keydown", keyDownHandler, false);
+	document.addEventListener("keyup", keyUpHandler, false);
+	setInterval(function() {
+		update();
+	}, 16.6667);
+
+	draw();
+}
+
+function keyDownHandler(event)
+{
+	var keyPressed = String.fromCharCode(event.keyCode);
+
+	if (keyPressed == "W")
+	{
+		cameraY += 1;
+	}
+	else if (keyPressed == "S")
+	{
+		cameraY -= 1;
+	}
+
+	if (keyPressed == "A")
+	{
+		cameraX -= 1;
+	}
+	else if (keyPressed == "D")
+	{
+		cameraX += 1;
+	}
+
+	moved = true;
+}
+
+function keyUpHandler(event)
+{
+	//var keyReleased = String.fromCharCode(event.keyCode);
 }
